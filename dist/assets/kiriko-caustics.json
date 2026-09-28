@@ -1,0 +1,14 @@
+{
+  "photons": 15403,
+  "launched": 67500,
+  "totalInternalReflections": 127680,
+  "maxInterfaces": 10,
+  "lightPosition": [
+    -0.6,
+    7.3,
+    -0.6
+  ],
+  "receiverY": 0.033,
+  "method": "RGB photon tracing through actual carved mesh with BVH, Snell refraction, Fresnel losses, absorption and bounded TIR; fixed-pose bake",
+  "crossings": 116916
+}

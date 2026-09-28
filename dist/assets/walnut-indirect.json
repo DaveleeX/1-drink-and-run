@@ -1,0 +1,19 @@
+{
+  "width": 128,
+  "height": 128,
+  "format": "RGBA16F little endian",
+  "colorSpace": "linear",
+  "samplesPerTexel": 512,
+  "seed": 1701,
+  "environmentRotation": 2.05,
+  "environmentIntensity": 0.55,
+  "method": "cosine-weighted Monte Carlo, HDR visibility plus one diffuse bounce from room proxy",
+  "directSpotlightIncluded": false,
+  "minimum": 0.010724760591983795,
+  "maximum": 0.8373717665672302,
+  "meanRGB": [
+    0.3527960777282715,
+    0.11837320774793625,
+    0.022200509905815125
+  ]
+}

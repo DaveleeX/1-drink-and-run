@@ -5,7 +5,7 @@ import {
 	HalfFloatType,
 	LinearFilter,
 	LinearSRGBColorSpace
-} from './three.module.js';
+} from 'three';
 
 /**
  * A loader for the RGBE HDR texture format.
@@ -100,7 +100,7 @@ class HDRLoader extends DataTextureLoader {
 
 					s += chunk; len += chunk.length;
 					p += chunkSize;
-					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
+					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
 
 				}
 
@@ -424,6 +424,7 @@ class HDRLoader extends DataTextureLoader {
 			default:
 
 				throw new Error( 'THREE.HDRLoader: Unsupported type: ' + this.type );
+				break;
 
 		}
 
@@ -433,12 +434,7 @@ class HDRLoader extends DataTextureLoader {
 			header: rgbe_header_info.string,
 			gamma: rgbe_header_info.gamma,
 			exposure: rgbe_header_info.exposure,
-			type: type,
-			colorSpace: LinearSRGBColorSpace,
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			generateMipmaps: false,
-			flipY: true
+			type: type
 		};
 
 	}
@@ -456,7 +452,35 @@ class HDRLoader extends DataTextureLoader {
 
 	}
 
+	load( url, onLoad, onProgress, onError ) {
+
+		function onLoadCallback( texture, texData ) {
+
+			switch ( texture.type ) {
+
+				case FloatType:
+				case HalfFloatType:
+
+					texture.colorSpace = LinearSRGBColorSpace;
+					texture.minFilter = LinearFilter;
+					texture.magFilter = LinearFilter;
+					texture.generateMipmaps = false;
+					texture.flipY = true;
+
+					break;
+
+			}
+
+			if ( onLoad ) onLoad( texture, texData );
+
+		}
+
+		return super.load( url, onLoadCallback, onProgress, onError );
+
+	}
+
 }
 
 export { HDRLoader };
+
 

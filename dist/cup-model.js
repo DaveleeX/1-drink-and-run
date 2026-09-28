@@ -3,7 +3,7 @@ import {GLASS} from './optics.js';
 
 // Inferred from the supplied dark reference, not measured manufacturing geometry.
 // One closed shell avoids intersecting cylinders, discs and duplicated glass walls.
-export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,wall=1,baseThickness=.53}={}){
+export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,wall=1,baseThickness=.25}={}){
   const baseY=baseThickness+.075,heelY=baseY+.115;
   const smooth=new T.MeshPhysicalMaterial({color:'#fbfdff',roughness:.006,metalness:0,
     transmission:1,thickness:1,ior:GLASS.ior,dispersion:GLASS.dispersion,envMapIntensity:1.25,
@@ -20,7 +20,7 @@ export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,w
     };
     material.customProgramCacheKey=()=> 'kiriko-local-thickness-v1';
   }
-  const segments=mobile?576:768, outerRows=mobile?240:320;
+  const segments=mobile?288:768, outerRows=mobile?144:320;
   const rings=[],positions=[],indices=[],groups=[];
   const tri=x=>1-Math.abs((((x%1)+1)%1)*2-1);
   const clamp=T.MathUtils.clamp;
@@ -50,15 +50,19 @@ export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,w
     return r;
   };
   const innerRadius=(y,a)=>{
-    const t=clamp((2.55-y)/(2.55-heelY),0,1);
-    return .939-.24*t-.070*Math.sin(Math.PI*Math.min(t*4,1)/2)-.060*wall*Math.sin(Math.PI*t)-.021*clamp((heelY+.42-y)/.42,0,1)*tri(a/(2*Math.PI)*cutCount);
+    // Keep clearance behind the deepest cuts, with a wide tumbler cavity.
+    const nominal=.88+.16*(y-.055)/2.55;
+    const rimBlend=clamp((y-2.34)/.21,0,1);
+    return T.MathUtils.lerp(nominal-.145*wall,.939,rimBlend);
+
   };
+  const floorRadius=innerRadius(heelY,0)-.105;
   // Local radial wall / vertical base estimate, not a multi-bounce path length.
   const thicknessAt=p=>{
     const a=Math.atan2(p.z,p.x),r=Math.hypot(p.x,p.z);
     if(p.y>2.55)return .098;
     if(p.y>=heelY)return clamp(outer(p.y-.055,a)-innerRadius(p.y,a),.035,.5);
-    return clamp(baseThickness-.07*Math.sin(Math.PI*clamp(r/.524,0,1)),baseThickness-.11,baseThickness);
+    return clamp(baseThickness-.07*Math.sin(Math.PI*clamp(r/floorRadius,0,1)),baseThickness-.11,baseThickness);
   };
   function ring(y,radius,material){rings.push({y,radius,material});}
   // Walk continuously: underside centre -> outer foot -> rim -> inner wall -> floor centre.
@@ -84,17 +88,17 @@ export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,w
   // Curved bowl heel transitions into the thick optical floor.
   for(let j=1;j<=12;j++){
     const a=j/12*Math.PI/2;
-    ring(heelY-.115*Math.sin(a),()=>.629-.105*(1-Math.cos(a)),0);
+    ring(heelY-.115*Math.sin(a),()=>innerRadius(heelY,0)-.105*(1-Math.cos(a)),0);
   }
   // Shallow multi-ring rosette: crossing radial flutes and staggered diamond facets.
   // These surfaces supply the dense interior highlight ring visible in the video.
   for(let j=1;j<=96;j++){
-    const r=.524*(1-j/96);
+    const r=(innerRadius(heelY,0)-.105)*(1-j/96);
     ring(baseY,()=>r,2);
     rings[rings.length-1].height=a=>{
       const radial=tri(a/(2*Math.PI)*48);
       const diamond=Math.min(tri(a/(2*Math.PI)*48+r*24),tri(a/(2*Math.PI)*48-r*24));
-      const fade=Math.sin(Math.PI*r/.524);
+      const fade=Math.sin(Math.PI*r/floorRadius);
       return baseY-.050*radial*fade-.026*diamond*fade+.012*Math.sin(r*78)*fade;
     };
   }
@@ -120,6 +124,6 @@ export function buildCup({mobile=false,width=1,height=1,cutDepth=1,cutCount=32,w
   geometry.computeBoundingBox();geometry.computeBoundingSphere();
   const mesh=new T.Mesh(geometry,[smooth,cut,base]);mesh.name='Continuous cut-glass shell';
   mesh.userData.thicknessAt=p=>{const y=.055+(p.y-.055)/height;return thicknessAt({x:p.x/width,y,z:p.z/width})*(y<heelY?height:width);};
-  mesh.userData.liquidProfile={bottom:.055+(baseY+.018-.055)*height,top:.055+(2.55-.055)*height,radiusAt:y=>{const local=.055+(y-.055)/height;return (local<heelY?T.MathUtils.lerp(.524,.608,T.MathUtils.clamp((local-baseY)/.115,0,1)):innerRadius(local,0)-.024)*width;}};
+  mesh.userData.liquidProfile={bottom:.055+(baseY+.018-.055)*height,top:.055+(2.55-.055)*height,radiusAt:y=>{const local=.055+(y-.055)/height;return (local<heelY?T.MathUtils.lerp(innerRadius(heelY,0)-.105,innerRadius(heelY,0),T.MathUtils.clamp((local-baseY)/.115,0,1)):innerRadius(local,0)-.024)*width;}};
   return mesh;
 }
