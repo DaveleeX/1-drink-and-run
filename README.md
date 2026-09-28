@@ -2,6 +2,8 @@
 
 **NOCTURNE — 威士忌酒吧实时 3D 场景。**
 
+[▶ 在线体验 · Vercel](https://1-drink-and-run.vercel.app/)
+
 一杯未喝完的威士忌、一支仍在冒烟的雪茄、一枚留在湿润黑胡桃木吧台上的弹壳。用灯光、材质和细小动态，讲一个没有人物出场的故事。
 
 本仓库已替换为酒吧场景完整版，原有江户切子独立展示页不再作为入口。
@@ -40,7 +42,9 @@ python -m http.server 8000 --directory dist
 
 仓库内的 vercel.json 已配置静态输出目录 dist。导入本仓库时选择 **Other**，Root Directory 保持仓库根目录，不需要环境变量。
 
-Vercel 预览地址尚待实际部署成功后补充。
+在线地址：https://1-drink-and-run.vercel.app/
+
+已部署酒吧场景完整版，连接 GitHub 主分支自动更新。请使用支持 WebGL 2 的浏览器访问。
 
 ## 工程结构
 
